@@ -1,0 +1,88 @@
+{% extends "_base.html" %}
+{% block title %}Security Overview — SecureAuth{% endblock %}
+{% block shellclass %} workspace{% endblock %}
+{% block content %}
+<div class="enhanced-version-chip" aria-label="Enhanced version">HCI Enhanced</div>
+{% if just_verified %}
+<div class="access-granted-banner">
+  <div class="access-check">✓</div>
+  <div><b>{{ 'Identity verified' if just_verified != 'password' else 'Sign-in complete' }}</b><span>{{ 'Password and authenticator both verified successfully.' if just_verified != 'password' else 'Password verified. Two-factor authentication is currently disabled.' }}</span></div>
+  <button type="button" class="banner-close" aria-label="Dismiss">×</button>
+</div>
+{% endif %}
+
+<div class="dashboard-heading">
+  <div><span class="eyebrow">SECURITY OVERVIEW</span><h2>Account protection</h2><p>Understand your protection status and take action without digging through settings.</p></div>
+  <div class="heading-actions"><span class="status-pill success">Protected</span><a class="compact-action" href="{{ url_for('settings') }}">Manage security</a></div>
+</div>
+
+<div class="dashboard-grid hero-grid">
+  <section class="security-score-card">
+    <div class="score-visual" style="--score: {{ security_score }}">
+      <div class="score-ring"><div><strong>{{ security_score }}</strong><span>/100</span></div></div>
+    </div>
+    <div class="score-copy">
+      <div class="score-kicker-row"><span class="card-kicker">Protection score</span><button class="help-tip small" type="button" aria-label="How the protection score works" data-help="Protection score measures configured safeguards: password protection 40 points, two-factor authentication 40 points, and available recovery codes 20 points. Recent sign-in attempts appear separately in Security Activity and do not weaken your configuration score.">?</button></div>
+      <h3>{{ security_label }} protection</h3>
+      <p>{{ 'Both authentication factors and recovery access are configured.' if two_factor_enabled and codes_left > 0 else 'There are recommended actions that can strengthen this account.' }}</p>
+      <div class="score-badges"><span class="status-pill success">Password protected</span><span class="status-pill {{ 'success' if two_factor_enabled else 'warning' }}">2FA {{ 'on' if two_factor_enabled else 'off' }}</span></div>
+      {% if failed_recent %}<div class="score-context warning">Protection is complete · Review recent unsuccessful activity</div>{% else %}<div class="score-context success">All recommended safeguards are configured</div>{% endif %}
+    </div>
+  </section>
+
+  <section class="why-protected-card">
+    <div class="section-title-row"><div><span class="card-kicker">Why you're protected</span><h3>Two independent checks</h3></div><button class="help-tip small" type="button" data-help="A secure two-factor flow uses separate types of evidence. SecureAuth combines something you know (your password) with something you have (the enrolled authenticator app).">?</button></div>
+    <div class="factor-row"><span class="factor-icon">1</span><div><b>Password</b><small>Something you know</small></div><span class="factor-state ok">✓ Verified</span></div>
+    <div class="factor-row"><span class="factor-icon">2</span><div><b>Authenticator</b><small>Something you have</small></div><span class="factor-state {{ 'ok' if two_factor_enabled else 'attention' }}">{{ '✓ Active' if two_factor_enabled else '! Off' }}</span></div>
+    <p class="factor-summary">{{ 'Both are required before full access is granted.' if two_factor_enabled else 'Enable 2FA so a password alone cannot complete sign-in.' }}</p>
+  </section>
+</div>
+
+<div class="section-title-row dashboard-section-title"><div><span class="card-kicker">Protection controls</span><h3>Security at a glance</h3></div></div>
+<div class="protection-cards">
+  <div class="protection-card"><span class="protection-icon">⌁</span><div><b>Password</b><small>First authentication factor</small></div><span class="status-pill success">Enabled</span></div>
+  <div class="protection-card"><span class="protection-icon">◈</span><div><b>Two-factor authentication</b><small>Authenticator verification</small></div><span class="status-pill {{ 'success' if two_factor_enabled else 'warning' }}">{{ 'Enabled' if two_factor_enabled else 'Disabled' }}</span></div>
+  <div class="protection-card"><span class="protection-icon">#</span><div><b>Recovery codes</b><small>Emergency account access</small></div><span class="status-pill {{ 'success' if codes_left > 3 else 'warning' }}">{{ codes_left }} remaining</span></div>
+</div>
+
+<div class="dashboard-grid lower-grid">
+  <section class="workspace-card">
+    <div class="section-title-row"><div><span class="card-kicker">Current session</span><h3>Your verified device</h3></div><span class="live-dot">Current</span></div>
+    <div class="device-card">
+      <div class="device-icon">▣</div>
+      <div class="device-main"><b>{{ client_context.platform }}</b><span>{{ client_context.browser }} · IP {{ client_context.ip }}</span><small>{{ auth_method }}{% if login_at %} · Signed in {{ login_at|replace('T', ' ') }}{% endif %}</small></div>
+      <span class="status-pill success">Trusted session</span>
+    </div>
+    <p class="card-footnote">SecureAuth only shows device information it can infer from this browser request. Unknown locations are never guessed.</p>
+    <a class="text-action" href="{{ url_for('settings') }}#sessions">Review session controls →</a>
+  </section>
+
+  <section class="workspace-card recovery-center">
+    <div class="section-title-row"><div><span class="card-kicker">Recovery center</span><h3>Don't get locked out</h3></div><button class="help-tip small" type="button" data-help="Recovery codes let you complete the second factor when your authenticator app is unavailable. Each recovery code can be used once.">?</button></div>
+    <div class="recovery-meter"><div class="recovery-meter-bar" style="width: {{ [codes_left * 10, 100]|min }}%"></div></div>
+    <div class="recovery-count"><b>{{ codes_left }} of 10</b><span>recovery codes available</span></div>
+    <p>{{ 'Your recovery set is ready for emergencies.' if codes_left > 3 else 'Your recovery reserve is getting low. Generate a fresh set before you need it.' }}</p>
+    <a class="text-action" href="{{ url_for('settings') }}#two-factor">Manage recovery options →</a>
+  </section>
+</div>
+
+<section class="workspace-card activity-preview">
+  <div class="section-title-row"><div><span class="card-kicker">Security activity</span><h3>Recent authentication events</h3></div><a class="text-action" href="{{ url_for('activity') }}">View all</a></div>
+  <div class="timeline-list">
+    {% for e in events %}
+    <div class="timeline-item {{ 'success' if e['success'] else 'failed' }}">
+      <span class="timeline-marker">{{ '✓' if e['success'] else '!' }}</span>
+      <div class="timeline-copy"><b>{{ e['event'] }}</b><span>{{ 'Completed successfully' if e['success'] else 'Action was blocked or unsuccessful' }}</span></div>
+      <time>{{ e['timestamp']|replace('T', ' ') }}</time>
+    </div>
+    {% else %}
+    <div class="empty-state">No security activity yet.</div>
+    {% endfor %}
+  </div>
+</section>
+
+<div class="dashboard-actions">
+  <a class="action-btn" href="{{ url_for('vault') }}">Open Password Security Suite</a>
+  <a class="btn-secondary" href="{{ url_for('logout') }}">Log out securely</a>
+</div>
+{% endblock %}

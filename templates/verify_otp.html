@@ -1,0 +1,53 @@
+{% extends "_base.html" %}
+{% block title %}Verify identity — SecureAuth{% endblock %}
+{% block content %}
+<div class="journey-stepper" aria-label="Sign-in progress">
+  <div class="journey-step done"><span>✓</span><b>Password</b></div><div class="journey-line done"></div>
+  <div class="journey-step active"><span>2</span><b>Verification</b></div><div class="journey-line"></div>
+  <div class="journey-step"><span>3</span><b>Access</b></div>
+</div>
+
+<div class="title-with-help">
+  <div><h2 class="auth-title">Enter verification code</h2><p class="auth-subtitle">Password accepted. Complete the second authentication factor.</p></div>
+  <button class="help-tip" type="button" data-help="Open the authenticator app you connected during setup and enter the newest 6-digit SecureAuth code. Each TOTP code changes every 30 seconds.">?</button>
+</div>
+
+<div class="signin-context">
+  <div class="context-icon" aria-hidden="true">▣</div>
+  <div class="context-main"><b>Confirm this sign-in</b><span>{{ client_context.platform }} · {{ client_context.browser }}</span></div>
+  <div class="context-meta"><span class="status-pill success">Password verified</span><small>IP {{ client_context.ip }}</small></div>
+</div>
+
+{% if locked %}
+<div class="lockout-box"><div class="lockout-title">Too many failed attempts</div><div class="lockout-sub">Verification is temporarily paused. Try again in about {{ remaining }} seconds.</div></div>
+<a class="logout-link" href="{{ url_for('login') }}">Back to login</a>
+{% else %}
+  {% if error %}<div class="alert alert-error"><span class="alert-icon">!</span><span>{{ error }}</span></div>{% endif %}
+
+  <form method="POST" action="{{ url_for('verify_otp') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" id="modeInput" name="mode" value="{{ 'backup' if backup_mode else 'totp' }}">
+
+    <div id="otpModeBlock" {% if backup_mode %}hidden{% endif %}>
+      <div class="otp-countdown-row">
+        <div class="otp-ring-wrap">
+          <svg class="otp-ring-svg" viewBox="0 0 36 36"><circle class="otp-ring-track" cx="18" cy="18" r="15.5"/><circle id="otpRing" class="otp-ring-progress" cx="18" cy="18" r="15.5"/></svg>
+          <div class="otp-ring-text" role="timer" aria-label="Time remaining for current authenticator code"><span id="otpRingLabel">30</span>s</div>
+        </div>
+        <div><b>Authenticator code · live</b><span id="otpExpiryText">Checking the current 30-second code window…</span></div>
+      </div>
+      <div id="otpExpiryWarning" class="micro-warning" hidden>Code is about to refresh. Waiting for the next code may reduce errors.</div>
+      <div class="form-group"><input class="otp-input" type="text" name="otp" id="otpField" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="000000" {% if not backup_mode %}required autofocus{% endif %} autocomplete="one-time-code" aria-label="6-digit authenticator code"></div>
+    </div>
+
+    <div id="backupModeBlock" {% if not backup_mode %}hidden{% endif %}>
+      <div class="recovery-callout"><b>Using a recovery code</b><span>Each backup code works once. Use this only when your authenticator app is unavailable.</span></div>
+      <div class="form-group"><input class="form-input mono" type="text" name="otp" id="backupField" placeholder="XXXX-XXXX" {% if backup_mode %}required autofocus{% endif %} autocomplete="off" aria-label="Backup recovery code"></div>
+    </div>
+
+    <button class="action-btn action-btn-arrow" type="submit"><span>Verify identity</span><span aria-hidden="true">→</span></button>
+  </form>
+
+  <div class="form-footer-link"><a href="#" id="toggleBackupMode">{{ 'Use your authenticator app instead' if backup_mode else 'Authenticator unavailable? Use a recovery code' }}</a></div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "_base.html" %}
+{% block title %}Security Activity — SecureAuth{% endblock %}
+{% block shellclass %} workspace{% endblock %}
+{% block content %}
+<div class="dashboard-heading compact-heading">
+  <div><span class="eyebrow">SECURITY ACTIVITY</span><h2>Authentication timeline</h2><p>Review successful and blocked security events for this account.</p></div>
+  <div class="activity-device-summary"><span class="live-dot">Current device</span><small>{{ client_context.platform }} · {{ client_context.browser }}</small></div>
+</div>
+
+<div class="activity-filter-bar" role="group" aria-label="Filter activity">
+  <button class="activity-filter active" type="button" data-filter="all">All</button>
+  <button class="activity-filter" type="button" data-filter="success">Successful</button>
+  <button class="activity-filter" type="button" data-filter="failed">Failed / blocked</button>
+  <button class="activity-filter" type="button" data-filter="security">Security changes</button>
+</div>
+
+<section class="workspace-card activity-full-card">
+  <div class="timeline-list" id="activityTimeline">
+    {% for e in events %}
+    <div class="timeline-item {{ 'success' if e['success'] else 'failed' }}" data-status="{{ 'success' if e['success'] else 'failed' }}" data-security="{{ 'yes' if ('2FA' in e['event'] or 'Password changed' in e['event'] or 'Backup codes' in e['event'] or 'sessions' in e['event']) else 'no' }}">
+      <span class="timeline-marker">{{ '✓' if e['success'] else '!' }}</span>
+      <div class="timeline-copy"><b>{{ e['event'] }}</b><span>{{ 'Verified or completed successfully' if e['success'] else 'Blocked, rejected, or unsuccessful attempt' }}</span></div>
+      <time>{{ e['timestamp']|replace('T', ' ') }}</time>
+    </div>
+    {% else %}<div class="empty-state">No activity yet.</div>{% endfor %}
+  </div>
+  <div id="activityEmptyFilter" class="empty-state" hidden>No events match this filter.</div>
+</section>
+{% endblock %}

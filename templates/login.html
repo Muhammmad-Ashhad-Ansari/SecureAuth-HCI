@@ -1,0 +1,64 @@
+{% extends "_base.html" %}
+{% block title %}Log in — SecureAuth{% endblock %}
+{% block content %}
+<div class="journey-stepper" aria-label="Sign-in progress">
+  <div class="journey-step active"><span>1</span><b>Password</b></div>
+  <div class="journey-line"></div>
+  <div class="journey-step"><span>2</span><b>Verification</b></div>
+  <div class="journey-line"></div>
+  <div class="journey-step"><span>3</span><b>Access</b></div>
+</div>
+
+<div class="title-with-help">
+  <div>
+    <h2 class="auth-title">Sign in securely</h2>
+    <p class="auth-subtitle">First, verify something only you should know.</p>
+  </div>
+  <button class="help-tip" type="button" aria-label="Why two steps?" data-help="Two-factor authentication separates sign-in into two checks. A password proves something you know; an authenticator code proves possession of your enrolled device.">?</button>
+</div>
+
+{% if just_setup %}
+<div class="alert alert-success"><span class="alert-icon">✓</span><span><b>2FA setup complete.</b><br>Sign in once to confirm that both factors work.</span></div>
+{% endif %}
+
+{% if locked %}
+<div class="lockout-box">
+  <div class="lockout-title">Too many failed attempts</div>
+  <div class="lockout-sub">Too many unsuccessful attempts were detected. Try again in about {{ remaining }} seconds.</div>
+</div>
+{% else %}
+  {% if error %}
+  <div class="alert alert-error"><span class="alert-icon">!</span><span>{{ error }} Check both fields and try again.</span></div>
+  {% endif %}
+
+  <form method="POST" action="{{ url_for('login') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-group">
+      <label class="form-label" for="username">Username</label>
+      <input class="form-input" type="text" id="username" name="username" placeholder="your.username" required autocomplete="username" autofocus>
+    </div>
+    <div class="form-group">
+      <div class="label-row">
+        <label class="form-label" for="password">Password</label>
+        <button class="inline-help" type="button" data-help="Your password is the first authentication factor. After it is accepted, SecureAuth asks for a separate one-time code when 2FA is enabled.">How this works</button>
+      </div>
+      <div class="pw-field">
+        <input class="form-input" type="password" id="password" name="password" placeholder="Your password" required autocomplete="current-password">
+        <button type="button" class="pw-toggle" data-target="password" aria-label="Show or hide password">
+          <svg class="pw-eye-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <button class="action-btn action-btn-arrow" type="submit"><span>Continue to verification</span><span aria-hidden="true">→</span></button>
+  </form>
+
+  <div class="privacy-note">
+    <span class="mini-shield">✓</span>
+    <span>Access is not granted until all required authentication factors are verified.</span>
+  </div>
+{% endif %}
+
+<div class="form-footer-link">Don't have an account? <a href="{{ url_for('register') }}">Create one</a></div>
+{% endblock %}

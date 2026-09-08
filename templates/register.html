@@ -1,0 +1,59 @@
+{% extends "_base.html" %}
+{% block title %}Register — SecureAuth{% endblock %}
+{% block content %}
+<div class="setup-progress-label">Account protection setup</div>
+<div class="journey-stepper compact" aria-label="Setup progress">
+  <div class="journey-step active"><span>1</span><b>Account</b></div><div class="journey-line"></div>
+  <div class="journey-step"><span>2</span><b>Scan</b></div><div class="journey-line"></div>
+  <div class="journey-step"><span>3</span><b>Verify</b></div><div class="journey-line"></div>
+  <div class="journey-step"><span>4</span><b>Recovery</b></div>
+</div>
+
+<h2 class="auth-title">Create your account</h2>
+<p class="auth-subtitle">Start with a strong password. Your authenticator app will be connected next.</p>
+
+{% if error %}
+<div class="alert alert-error"><span class="alert-icon">!</span><span>{{ error }}</span></div>
+{% endif %}
+
+<form method="POST" action="{{ url_for('register') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="form-group">
+    <label class="form-label" for="full_name">Full name</label>
+    <input class="form-input" type="text" id="full_name" name="full_name" placeholder="Your full name" required autocomplete="name">
+  </div>
+  <div class="form-group">
+    <label class="form-label" for="username">Username</label>
+    <input class="form-input" type="text" id="username" name="username" placeholder="your.username" required autocomplete="username" minlength="3">
+  </div>
+  <div class="form-group">
+    <div class="label-row"><label class="form-label" for="password">Password</label><span id="regStrengthLabelTop" class="field-state">Start typing</span></div>
+    <div class="pw-field">
+      <input class="form-input" type="password" id="password" name="password" placeholder="At least 8 characters" required autocomplete="new-password" minlength="8">
+      <button type="button" class="pw-toggle" data-target="password" aria-label="Show or hide password"><svg class="pw-eye-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+    </div>
+    <div id="regStrengthWrap" class="reg-strength-wrap" hidden>
+      <div class="reg-strength-track"><div id="regStrengthBar" class="reg-strength-bar"></div></div>
+      <span id="regStrengthLabel" class="reg-strength-label">—</span>
+    </div>
+    <div class="password-requirements" id="passwordRequirements" aria-live="polite">
+      <span data-rule="length">8+ characters</span>
+      <span data-rule="upper">Uppercase</span>
+      <span data-rule="lower">Lowercase</span>
+      <span data-rule="number">Number</span>
+      <span data-rule="special">Special character</span>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="label-row"><label class="form-label" for="confirm_password">Confirm password</label><span id="passwordMatchState" class="field-state"></span></div>
+    <div class="pw-field">
+      <input class="form-input" type="password" id="confirm_password" name="confirm_password" placeholder="Re-enter password" required autocomplete="new-password" minlength="8">
+      <button type="button" class="pw-toggle" data-target="confirm_password" aria-label="Show or hide password"><svg class="pw-eye-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+    </div>
+  </div>
+  <button class="action-btn action-btn-arrow" type="submit"><span>Continue to authenticator setup</span><span aria-hidden="true">→</span></button>
+</form>
+
+<div class="privacy-note"><span class="mini-shield">✓</span><span>Your password is stored as a secure hash, not as readable plain text.</span></div>
+<div class="form-footer-link">Already have an account? <a href="{{ url_for('login') }}">Log in</a></div>
+{% endblock %}

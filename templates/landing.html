@@ -1,0 +1,33 @@
+{% extends "_base.html" %}
+{% block title %}SecureAuth — Clear, Human-Centered 2FA{% endblock %}
+{% block shellclass %} wide{% endblock %}
+{% block content %}
+<section class="landing-hero">
+  <div class="landing-copy">
+    <h1>Security you can<br><span>actually understand.</span></h1>
+    <p>SecureAuth brings password protection, authenticator verification, recovery access, and transparent security controls into one calm, dependable experience.</p>
+    <div class="landing-actions"><a class="action-btn" href="{{ url_for('register') }}">Create protected account <span aria-hidden="true">→</span></a><a class="btn-secondary" href="{{ url_for('login') }}">Sign in</a></div>
+  </div>
+  <div class="security-preview" aria-label="SecureAuth protection preview">
+    <div class="preview-top"><span class="preview-brand"><span class="preview-lock">⌾</span> Protection status</span><span class="live-dot">Live</span></div>
+    <div class="preview-score"><div class="preview-ring"><strong>92</strong><small>/100</small></div><div><span>SECURITY SCORE</span><b>Strong protection</b><small>All essential safeguards are active.</small></div></div>
+    <div class="preview-row"><span><i>✓</i><b>Password</b></span><em>Protected</em></div>
+    <div class="preview-row"><span><i>✓</i><b>Authenticator</b></span><em>Active</em></div>
+    <div class="preview-row"><span><i>✓</i><b>Recovery codes</b></span><em>10 ready</em></div>
+    <div class="preview-footer"><span class="pulse-dot"></span> Your account is fully protected</div>
+  </div>
+</section>
+
+<div class="experience-strip">
+  <div><span>01</span><b>Password</b><small>Something you know</small></div><i>→</i><div><span>02</span><b>Authenticator</b><small>Something you have</small></div><i>→</i><div><span>03</span><b>Access</b><small>Only after verification</small></div>
+</div>
+
+<section class="feature-grid enhanced-grid">
+  <div class="feature-card"><div class="feature-number">01</div><div class="title">Guided sign-in</div><div class="desc">Users always know which authentication step they are completing and what comes next.</div></div>
+  <div class="feature-card"><div class="feature-number">02</div><div class="title">Visible security status</div><div class="desc">A security score, factor status, recovery reserve, and activity timeline make protection understandable.</div></div>
+  <div class="feature-card"><div class="feature-number">03</div><div class="title">Error recovery</div><div class="desc">Clear corrective messages, OTP timing guidance, backup codes, and contextual help reduce dead ends.</div></div>
+  <div class="feature-card"><div class="feature-number">04</div><div class="title">User control</div><div class="desc">Review security activity, manage 2FA, revoke other sessions, and adjust accessibility preferences.</div></div>
+</section>
+
+<div class="principle-bar"><span>Visibility</span><span>Feedback</span><span>Error prevention</span><span>User control</span><span>Accessibility</span><span>Consistency</span></div>
+{% endblock %}

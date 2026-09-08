@@ -1,0 +1,58 @@
+{% extends "_base.html" %}
+{% block title %}Security Settings — SecureAuth{% endblock %}
+{% block shellclass %} workspace{% endblock %}
+{% block content %}
+<div class="dashboard-heading compact-heading">
+  <div><span class="eyebrow">SECURITY CONTROLS</span><h2>Security settings</h2><p>Manage credentials, two-factor protection, recovery, and active sessions.</p></div>
+  <span class="status-pill {{ 'success' if two_factor_enabled else 'warning' }}">2FA {{ 'enabled' if two_factor_enabled else 'disabled' }}</span>
+</div>
+
+{% if password_error %}<div class="alert alert-error"><span class="alert-icon">!</span><span>{{ password_error }}</span></div>{% endif %}
+{% if password_success %}<div class="alert alert-success"><span class="alert-icon">✓</span><span>{{ password_success }}</span></div>{% endif %}
+{% if disable_error %}<div class="alert alert-error"><span class="alert-icon">!</span><span>{{ disable_error }}</span></div>{% endif %}
+
+<div class="settings-grid">
+  <section class="workspace-card settings-card">
+    <div class="section-title-row"><div><span class="card-kicker">Password</span><h3>Change password</h3></div><button class="help-tip small" type="button" data-help="Changing the password invalidates other active sessions, reducing risk if an old session or password may have been exposed.">?</button></div>
+    <p class="settings-note">A new password signs out every other active session while keeping this verified session open.</p>
+    <form method="POST" action="{{ url_for('change_password') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="form-group"><label class="form-label" for="current_password">Current password</label><div class="pw-field"><input class="form-input" type="password" id="current_password" name="current_password" required autocomplete="current-password"><button type="button" class="pw-toggle" data-target="current_password" aria-label="Show or hide password"><svg class="pw-eye-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+      <div class="form-group"><label class="form-label" for="new_password">New password</label><div class="pw-field"><input class="form-input" type="password" id="new_password" name="new_password" required autocomplete="new-password" minlength="8"><button type="button" class="pw-toggle" data-target="new_password" aria-label="Show or hide password"><svg class="pw-eye-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+      <div class="form-group"><label class="form-label" for="confirm_new_password">Confirm new password</label><div class="pw-field"><input class="form-input" type="password" id="confirm_new_password" name="confirm_new_password" required autocomplete="new-password" minlength="8"><button type="button" class="pw-toggle" data-target="confirm_new_password" aria-label="Show or hide password"><svg class="pw-eye-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+      <button class="btn-secondary" type="submit">Update password</button>
+    </form>
+  </section>
+
+  <section class="workspace-card settings-card" id="two-factor">
+    <div class="section-title-row"><div><span class="card-kicker">Second factor</span><h3>Two-factor authentication</h3></div><span class="status-pill {{ 'success' if two_factor_enabled else 'warning' }}">{{ 'On' if two_factor_enabled else 'Off' }}</span></div>
+    {% if two_factor_enabled %}
+      <div class="settings-summary-list"><div><span>Authenticator</span><b class="good-text">Active</b></div><div><span>Recovery codes</span><b>{{ codes_left }} remaining</b></div></div>
+      <form method="POST" action="{{ url_for('regenerate_backup_codes') }}" class="inline-settings-action"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn-secondary" type="submit">Generate a fresh recovery set</button></form>
+      <details class="danger-details"><summary>Turn off two-factor authentication</summary><p class="settings-note">This reduces account protection. Confirm with both your password and a current authenticator code.</p>
+        <form method="POST" action="{{ url_for('disable_2fa') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="form-group"><label class="form-label" for="disable_password">Current password</label><div class="pw-field"><input class="form-input" type="password" id="disable_password" name="current_password" required autocomplete="current-password"><button type="button" class="pw-toggle" data-target="disable_password" aria-label="Show or hide password"><svg class="pw-eye-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+          <div class="form-group"><label class="form-label" for="disable_otp">Authenticator code</label><input class="form-input mono" type="text" id="disable_otp" name="otp" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="000000" required autocomplete="one-time-code"></div>
+          <button class="danger-btn" type="submit">Disable 2FA</button>
+        </form>
+      </details>
+    {% else %}
+      <div class="attention-callout"><b>Your password is currently the only sign-in factor.</b><span>Add an authenticator to require a second independent verification step.</span></div>
+      <form method="POST" action="{{ url_for('enable_2fa') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="action-btn" type="submit">Enable two-factor authentication</button></form>
+    {% endif %}
+  </section>
+
+  <section class="workspace-card settings-card sessions-card" id="sessions">
+    <div class="section-title-row"><div><span class="card-kicker">Sessions</span><h3>Current verified session</h3></div><span class="live-dot">Current</span></div>
+    <div class="device-card compact-device"><div class="device-icon">▣</div><div class="device-main"><b>{{ client_context.platform }}</b><span>{{ client_context.browser }} · IP {{ client_context.ip }}</span><small>{{ auth_method }}{% if login_at %} · Signed in {{ login_at|replace('T', ' ') }}{% endif %}</small></div><span class="status-pill success">This device</span></div>
+    <p class="settings-note">If another signed-in session is not yours, revoke every other session immediately. This current verified session stays open.</p>
+    <form method="POST" action="{{ url_for('logout_other_sessions') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn-secondary" type="submit">Sign out all other sessions</button></form>
+  </section>
+
+  <section class="workspace-card settings-card">
+    <div class="section-title-row"><div><span class="card-kicker">Usability</span><h3>Interface preferences</h3></div><span class="status-pill neutral">HCI</span></div>
+    <p class="settings-note">Theme, larger text, high contrast, and reduced motion are available from the <b>Aa</b> accessibility control in the header and are remembered on this device.</p>
+    <button class="btn-secondary" type="button" data-open-accessibility>Open accessibility preferences</button>
+  </section>
+</div>
+{% endblock %}

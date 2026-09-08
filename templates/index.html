@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#07111f">
+<title>Password Security Suite</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=hci4">
+</head>
+<body data-theme="dark">
+  <a class="skip-link" href="#vaultContent">Skip to content</a>
+  <div class="scroll-progress" aria-hidden="true"><span></span></div>
+  <div class="vault-topbar">
+    <a href="{{ url_for('dashboard') }}">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      Dashboard
+    </a>
+  </div>
+
+  <main class="container vault-shell" id="vaultContent">
+    <header class="console-header">
+      <div class="brand">
+        <div class="logo">
+          <img src="{{ url_for('static', filename='img/secureauth-shield.jpg') }}" alt="SecureAuth">
+        </div>
+        <div class="brand-text">
+          <h1>Password Security Suite</h1>
+          <p class="subtitle">Analyzer, generator, and passphrases</p>
+        </div>
+      </div>
+      <button id="themeToggle" class="icon-btn" type="button" title="Toggle theme" aria-label="Toggle theme">
+        <svg id="themeIcon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
+        </svg>
+      </button>
+    </header>
+
+    <nav class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="analyzer" type="button" role="tab">Analyzer</button>
+      <button class="tab-btn" data-tab="generator" type="button" role="tab">Generator</button>
+      <button class="tab-btn" data-tab="passphrase" type="button" role="tab">Passphrase</button>
+    </nav>
+
+    <!-- ============ ANALYZER ============ -->
+    <section class="panel" id="panel-analyzer" role="tabpanel">
+      <div class="input-group">
+        <div class="input-wrap">
+          <input type="password" id="passwordInput" placeholder="Type a password to evaluate…" autocomplete="off" spellcheck="false">
+          <button id="toggleBtn" class="input-icon-btn" type="button" title="Show / hide password" aria-label="Show or hide password">
+            <svg id="eyeIcon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="status-row">
+        <span id="strengthLabel" class="status-badge">Awaiting input</span>
+        <span class="score-readout">Score <b id="scoreLabel">0</b>/100</span>
+      </div>
+
+      <div class="meter" aria-hidden="true">
+        <div class="segments" id="segments"></div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-box">
+          <span class="stat-title">Entropy</span>
+          <span id="entropyValue" class="stat-value">0 bits</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-title">Est. crack time</span>
+          <span id="crackTimeValue" class="stat-value">—</span>
+        </div>
+        <div class="stat-box stat-wide">
+          <span class="stat-title">Composition</span>
+          <div id="composition" class="composition"></div>
+        </div>
+      </div>
+
+      <div class="fingerprint">
+        <span class="stat-title">Fingerprint · SHA-256</span>
+        <code id="fingerprintValue">—</code>
+      </div>
+
+      <div class="checks" id="checksList"></div>
+
+      <div class="suggestions">
+        <h3>Suggestions</h3>
+        <ul id="suggestionsList"></ul>
+      </div>
+    </section>
+
+    <!-- ============ GENERATOR ============ -->
+    <section class="panel" id="panel-generator" role="tabpanel" hidden>
+      <div class="gen-controls">
+        <div class="gen-row">
+          <span class="gen-label">Length</span>
+          <input type="range" id="genLength" min="8" max="40" value="16">
+          <span class="gen-length-value mono" id="genLengthValue">16</span>
+        </div>
+
+        <div class="gen-options">
+          <label class="toggle-chip"><input type="checkbox" id="optUpper" checked><span>Uppercase</span></label>
+          <label class="toggle-chip"><input type="checkbox" id="optLower" checked><span>Lowercase</span></label>
+          <label class="toggle-chip"><input type="checkbox" id="optDigits" checked><span>Digits</span></label>
+          <label class="toggle-chip"><input type="checkbox" id="optSpecial" checked><span>Special</span></label>
+          <label class="toggle-chip"><input type="checkbox" id="optAmbiguous"><span>No ambiguous</span></label>
+        </div>
+
+        <button id="generateBtn" class="action-btn" type="button">
+          Generate password
+        </button>
+      </div>
+
+      <div class="gen-output" id="genOutputWrapper" hidden>
+        <div class="gen-output-row">
+          <span id="genOutputText" class="gen-output-text mono"></span>
+          <div class="gen-actions">
+            <button id="regenBtn" class="mini-btn" type="button" title="Regenerate" aria-label="Regenerate">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+              </svg>
+            </button>
+            <button id="copyBtn" class="mini-btn" type="button" title="Copy" aria-label="Copy">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="status-row" style="margin-top: 12px;">
+          <span id="genStrengthLabel" class="status-badge">—</span>
+          <span class="score-readout">Score <b id="genScoreLabel">0</b>/100</span>
+        </div>
+        <div class="meter" style="margin-top: 8px; margin-bottom: 0;" aria-hidden="true">
+          <div class="segments" id="genSegments"></div>
+        </div>
+      </div>
+
+      <div class="history" id="historySection" hidden>
+        <h3>History</h3>
+        <ul id="historyList"></ul>
+      </div>
+    </section>
+
+    <!-- ============ PASSPHRASE ============ -->
+    <section class="panel" id="panel-passphrase" role="tabpanel" hidden>
+      <div class="gen-controls">
+        <div class="gen-row">
+          <span class="gen-label">Words</span>
+          <input type="range" id="ppWords" min="3" max="8" value="5">
+          <span class="gen-length-value mono" id="ppWordsValue">5</span>
+        </div>
+
+        <div class="gen-row">
+          <span class="gen-label">Sep</span>
+          <div class="chip-row" id="ppSepGroup" role="group" aria-label="Separator">
+            <button class="pp-sep-btn active" data-sep="-" type="button">-</button>
+            <button class="pp-sep-btn" data-sep="." type="button">.</button>
+            <button class="pp-sep-btn" data-sep="_" type="button">_</button>
+            <button class="pp-sep-btn" data-sep=" " type="button">space</button>
+          </div>
+        </div>
+
+        <div class="gen-options">
+          <label class="toggle-chip"><input type="checkbox" id="ppCap" checked><span>Capitalize</span></label>
+          <label class="toggle-chip"><input type="checkbox" id="ppDigit"><span>Add digit</span></label>
+        </div>
+
+        <button id="ppGenerateBtn" class="action-btn" type="button">
+          Generate passphrase
+        </button>
+        <p class="hint">Random dictionary words joined together — easier to remember than a character soup.</p>
+      </div>
+
+      <div class="gen-output" id="ppOutputWrapper" hidden>
+        <div class="gen-output-row">
+          <span id="ppOutputText" class="gen-output-text mono"></span>
+          <button id="ppCopyBtn" class="mini-btn" type="button" title="Copy" aria-label="Copy">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+          </button>
+        </div>
+        <div class="status-row" style="margin-top: 12px;">
+          <span id="ppStrengthLabel" class="status-badge">—</span>
+          <span class="score-readout">Score <b id="ppScoreLabel">0</b>/100</span>
+        </div>
+        <div class="meter" style="margin-top: 8px; margin-bottom: 0;" aria-hidden="true">
+          <div class="segments" id="ppSegments"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="{{ url_for('static', filename='js/script.js') }}?v=hci4"></script>
+  <script src="{{ url_for('static', filename='js/motion.js') }}?v=hci4"></script>
+</body>
+</html>
